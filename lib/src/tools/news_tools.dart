@@ -168,6 +168,11 @@ const _stopWords = {
   "what's", 'happening', 'happen', 'latest', 'news', 'update', 'updates',
   'about', 'any', 'right', 'now', 'today', 'recent', 'current', 'tell', 'me',
   'give', 'show', 'situation', 'situational', 'brief', 'report',
+  // Turkish generic terms so an agenda-style query reduces to recency-ranked headlines
+  've', 'ile', 'bir', 'için', 'icin', 'ne', 'mi', 'mu', 'mü', 'da', 'de',
+  'gündem', 'gundem', 'gündemi', 'gundemi', 'haber', 'haberler', 'haberleri',
+  'son', 'dakika', 'bugün', 'bugun', 'oluyor', 'nedir', 'hakkında', 'hakkinda',
+  'güncel', 'guncel', 'nler', 'olan', 'var', 'gelişme', 'gelisme', 'gelişmeler',
 };
 
 class _Query {
@@ -276,12 +281,33 @@ Future<String> searchNews(String query, {String? category}) async {
     if (seen.add(it.title.toLowerCase())) ranked.add(it);
   }
 
+  final bool hasCategory = category != null && category.trim().isNotEmpty;
   if (ranked.isEmpty) {
-    return "No recent headlines matching '$query' across ${feeds.length} curated feeds.";
+    if (hasCategory && raw.isNotEmpty) {
+      final recent = raw.where((it) => it.title.isNotEmpty).toList()
+        ..sort((a, b) => (b.epoch ?? 0).compareTo(a.epoch ?? 0));
+      final s2 = <String>{};
+      for (final it in recent) {
+        if (s2.add(it.title.toLowerCase())) ranked.add(it);
+      }
+    }
+    if (ranked.isEmpty) {
+      return "No recent headlines matching '$query' across ${feeds.length} curated feeds.";
+    }
   }
-  final lines = <String>[
-    "News results for '$query' (${ranked.length} match(es) across ${feeds.length} curated feeds, most relevant first):\n",
-  ];
+  final label = hasCategory ? "'$category'" : 'curated';
+  final String headline;
+  if (query.trim().isEmpty) {
+    headline =
+        "Latest $label headlines across ${feeds.length} feeds (most recent first):\n";
+  } else if (scored.isEmpty) {
+    headline =
+        "Latest $label headlines (no term match for '$query', most recent first):\n";
+  } else {
+    headline =
+        "News results for '$query' (${ranked.length} match(es) across ${feeds.length} curated feeds, most relevant first):\n";
+  }
+  final lines = <String>[headline];
   for (final it in ranked.take(_maxResults)) {
     final age = _relAge(it.epoch, now);
     final when = age.isEmpty ? _fmtWhen(it.epoch) : '${_fmtWhen(it.epoch)} ($age)';

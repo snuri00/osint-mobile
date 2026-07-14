@@ -3499,6 +3499,195 @@
 "lang": "en",
 "category": "intel",
 "variant": "intel"
+},
+{
+"name": "Anadolu Ajansı",
+"url": "https://www.aa.com.tr/tr/rss/default?cat=guncel",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Anadolu Ajansı Dünya",
+"url": "https://www.aa.com.tr/tr/rss/default?cat=dunya",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "TRT Haber",
+"url": "https://www.trthaber.com/sondakika.rss",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Hürriyet",
+"url": "https://www.hurriyet.com.tr/rss/gundem",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Milliyet",
+"url": "https://www.milliyet.com.tr/rss/rssnew/gundemrss.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Cumhuriyet",
+"url": "https://www.cumhuriyet.com.tr/rss/son_dakika.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Sözcü",
+"url": "https://www.sozcu.com.tr/rss/tum-haberler.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "NTV",
+"url": "https://www.ntv.com.tr/son-dakika.rss",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Habertürk",
+"url": "https://www.haberturk.com/rss",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "CNN Türk",
+"url": "https://www.cnnturk.com/feed/rss/all/news",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Sabah",
+"url": "https://www.sabah.com.tr/rss/gundem.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "A Haber",
+"url": "https://www.ahaber.com.tr/rss/anasayfa.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Yeni Şafak",
+"url": "https://www.yenisafak.com/rss?xml=anasayfa",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Karar",
+"url": "https://www.karar.com/rss",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Evrensel",
+"url": "https://www.evrensel.net/rss/haber.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Diken",
+"url": "https://www.diken.com.tr/feed/",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "OdaTV",
+"url": "https://www.odatv.com/rss.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Halk TV",
+"url": "https://halktv.com.tr/service/rss.php",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Euronews Türkçe",
+"url": "https://tr.euronews.com/rss?level=theme&name=news",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Independent Türkçe",
+"url": "https://www.indyturk.com/rss.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Mynet",
+"url": "https://www.mynet.com/haber/rss/sondakika",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Ensonhaber",
+"url": "https://www.ensonhaber.com/rss/ensonhaber.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "world"
+},
+{
+"name": "Dünya",
+"url": "https://www.dunya.com/rss",
+"lang": "tr",
+"category": "turkey",
+"variant": "finance"
+},
+{
+"name": "Bloomberg HT",
+"url": "https://www.bloomberght.com/rss",
+"lang": "tr",
+"category": "turkey",
+"variant": "finance"
+},
+{
+"name": "Anadolu Ekonomi",
+"url": "https://www.aa.com.tr/tr/rss/default?cat=ekonomi",
+"lang": "tr",
+"category": "turkey",
+"variant": "finance"
+},
+{
+"name": "Webtekno",
+"url": "https://www.webtekno.com/rss.xml",
+"lang": "tr",
+"category": "turkey",
+"variant": "tech"
+},
+{
+"name": "ShiftDelete",
+"url": "https://shiftdelete.net/feed",
+"lang": "tr",
+"category": "turkey",
+"variant": "tech"
 }
 ],
 "source_types": {
@@ -3647,7 +3836,35 @@
 "Stratechery": "tech",
 "Benedict Evans": "tech",
 "How I Built This": "tech",
-"Masters of Scale": "tech"
+"Masters of Scale": "tech",
+"Anadolu Ajansı": "wire",
+"Anadolu Ajansı Dünya": "wire",
+"TRT Haber": "gov",
+"Hürriyet": "mainstream",
+"Milliyet": "mainstream",
+"Cumhuriyet": "mainstream",
+"Sözcü": "mainstream",
+"NTV": "mainstream",
+"Habertürk": "mainstream",
+"CNN Türk": "mainstream",
+"Sabah": "mainstream",
+"A Haber": "mainstream",
+"Yeni Şafak": "mainstream",
+"Karar": "mainstream",
+"Evrensel": "mainstream",
+"Diken": "mainstream",
+"OdaTV": "mainstream",
+"Halk TV": "mainstream",
+"BBC Türkçe": "mainstream",
+"Euronews Türkçe": "mainstream",
+"Independent Türkçe": "mainstream",
+"Mynet": "mainstream",
+"Ensonhaber": "mainstream",
+"Dünya": "market",
+"Bloomberg HT": "market",
+"Anadolu Ekonomi": "wire",
+"Webtekno": "tech",
+"ShiftDelete": "tech"
 },
 "propaganda_risk": {
 "Xinhua": {
@@ -3783,6 +4000,22 @@
 "Brasil Paralelo": {
 "risk": "low",
 "note": "Independent media company: no political ties, no public funding, 100% subscriber-funded."
+},
+"Anadolu Ajansı": {
+"stateAffiliated": "Turkey",
+"risk": "medium"
+},
+"Anadolu Ajansı Dünya": {
+"stateAffiliated": "Turkey",
+"risk": "medium"
+},
+"TRT Haber": {
+"stateAffiliated": "Turkey",
+"risk": "medium"
+},
+"Anadolu Ekonomi": {
+"stateAffiliated": "Turkey",
+"risk": "medium"
 }
 }
 }

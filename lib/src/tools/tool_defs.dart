@@ -2,18 +2,22 @@ const List<Map<String, dynamic>> kToolDefs = [
   {
     'name': 'search_news',
     'description':
-        'Search a curated registry of ~500 RSS feeds for a topic/keyword and return '
+        'Search a curated registry of ~525 RSS feeds for a topic/keyword and return '
             'ranked, deduplicated headlines, each flagged with its source tier and any '
             'propaganda-risk / state-affiliation. Keyless. Use for event/journalist-style '
-            'news intelligence, not for a person.',
+            'news intelligence, not for a person. For Turkey-specific questions or the '
+            "Turkish agenda (\"Türkiye gündemi\"), pass category='turkey' to search ~27 "
+            'Turkish outlets (Anadolu Ajansı, TRT, Hürriyet, Sözcü, Cumhuriyet, BBC Türkçe, '
+            'etc.). For a general agenda overview with no specific topic, set the matching '
+            'category and pass a short/empty query — you will get the latest headlines.',
     'input_schema': {
       'type': 'object',
       'properties': {
-        'query': {'type': 'string', 'description': 'Topic or keywords to search.'},
+        'query': {'type': 'string', 'description': 'Topic or keywords to search. May be empty for a general agenda overview when a category is set.'},
         'category': {
           'type': 'string',
           'description':
-              "Optional feed category/region (e.g. 'middleeast', 'energy', 'gov') or variant ('world','tech','finance','commodity','intel').",
+              "Optional feed category/region: 'turkey' (Turkish sources), 'middleeast', 'energy', 'gov', etc., or a variant ('world','tech','finance','commodity','intel').",
         },
       },
       'required': ['query'],
