@@ -167,25 +167,31 @@ class _ChatScreenState extends State<ChatScreen> {
     final p = _p;
     return Scaffold(
       backgroundColor: p.bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _header(p),
-            _tabStrip(p),
-            Expanded(
-              child: _s.messages.isEmpty
-                  ? _emptyState(p)
-                  : ListView.builder(
-                      controller: _s.scroll,
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      itemCount: _s.messages.length,
-                      itemBuilder: (_, i) => _messageWidget(_s.messages[i], p),
-                    ),
-            ),
-            _statusBar(p),
-            _composer(p),
-            _footer(p),
-          ],
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _header(p),
+              _tabStrip(p),
+              Expanded(
+                child: _s.messages.isEmpty
+                    ? _emptyState(p)
+                    : ListView.builder(
+                        controller: _s.scroll,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        itemCount: _s.messages.length,
+                        itemBuilder: (_, i) => _messageWidget(_s.messages[i], p),
+                      ),
+              ),
+              _statusBar(p),
+              _composer(p),
+              _footer(p),
+            ],
+          ),
         ),
       ),
     );
