@@ -108,16 +108,43 @@ List<_Item> _parseFeed(String body, String source, String category) {
   return items;
 }
 
+class _CacheEntry {
+  _CacheEntry(this.items, this.etag, this.lastModified, this.fetchedAt);
+  List<_Item> items;
+  String? etag;
+  String? lastModified;
+  DateTime fetchedAt;
+}
+
+final Map<String, _CacheEntry> _feedCache = {};
+const _cacheTtl = Duration(minutes: 5);
+
 Future<List<_Item>> _fetchFeed(Feed feed, Duration timeout) async {
+  final now = DateTime.now();
+  final cached = _feedCache[feed.url];
+  if (cached != null && now.difference(cached.fetchedAt) < _cacheTtl) {
+    return cached.items;
+  }
+  final headers = {'User-Agent': _userAgent};
+  if (cached?.etag != null) headers['If-None-Match'] = cached!.etag!;
+  if (cached?.lastModified != null) {
+    headers['If-Modified-Since'] = cached!.lastModified!;
+  }
   try {
-    final resp = await http
-        .get(Uri.parse(feed.url), headers: {'User-Agent': _userAgent})
-        .timeout(timeout);
-    if (resp.statusCode != 200) return [];
-    return _parseFeed(utf8.decode(resp.bodyBytes, allowMalformed: true),
-        feed.name, feed.category);
+    final resp =
+        await http.get(Uri.parse(feed.url), headers: headers).timeout(timeout);
+    if (resp.statusCode == 304 && cached != null) {
+      cached.fetchedAt = now;
+      return cached.items;
+    }
+    if (resp.statusCode != 200) return cached?.items ?? [];
+    final items = _parseFeed(
+        utf8.decode(resp.bodyBytes, allowMalformed: true), feed.name, feed.category);
+    _feedCache[feed.url] = _CacheEntry(
+        items, resp.headers['etag'], resp.headers['last-modified'], now);
+    return items;
   } catch (_) {
-    return [];
+    return cached?.items ?? [];
   }
 }
 
@@ -135,10 +162,80 @@ Future<List<_Item>> _gather(List<Feed> feeds, Duration perFeed) async {
   return out;
 }
 
-bool _matches(_Item it, List<String> terms) {
-  if (terms.isEmpty) return true;
-  final hay = '${it.title} ${it.summary}'.toLowerCase();
-  return terms.every(hay.contains);
+const _stopWords = {
+  'the', 'a', 'an', 'of', 'in', 'on', 'to', 'and', 'or', 'for', 'is', 'are',
+  'was', 'were', 'be', 'with', 'at', 'by', 'from', 'as', 'what', 'whats',
+  "what's", 'happening', 'happen', 'latest', 'news', 'update', 'updates',
+  'about', 'any', 'right', 'now', 'today', 'recent', 'current', 'tell', 'me',
+  'give', 'show', 'situation', 'situational', 'brief', 'report',
+};
+
+class _Query {
+  _Query(this.terms, this.phrases);
+  final List<String> terms;
+  final List<String> phrases;
+  bool get isEmpty => terms.isEmpty && phrases.isEmpty;
+}
+
+_Query _parseQuery(String q) {
+  final lower = q.toLowerCase();
+  final phraseRe = RegExp(r'"([^"]+)"');
+  final phrases = [
+    for (final m in phraseRe.allMatches(lower)) m.group(1)!.trim()
+  ].where((p) => p.isNotEmpty).toList();
+  final rest = lower.replaceAll(phraseRe, ' ');
+  final terms = rest
+      .split(RegExp(r'[^a-z0-9]+'))
+      .where((t) => t.length > 1 && !_stopWords.contains(t))
+      .toSet()
+      .toList();
+  return _Query(terms, phrases);
+}
+
+int _count(String hay, String needle) {
+  if (needle.isEmpty) return 0;
+  var n = 0, i = 0;
+  while ((i = hay.indexOf(needle, i)) != -1) {
+    n++;
+    i += needle.length;
+  }
+  return n;
+}
+
+double _recencyBoost(int? epoch, DateTime now) {
+  if (epoch == null) return 0.3;
+  final ageDays = now
+          .difference(DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true))
+          .inHours /
+      24.0;
+  if (ageDays < 0) return 1.0;
+  return 1.0 / (1.0 + ageDays / 2.0);
+}
+
+/// Relevance score: term frequency (title weighted 3x over summary) plus a
+/// strong phrase bonus, modulated by a recency-decay factor (~2-day half-life).
+/// Returns 0 when a required phrase is absent or nothing matches.
+double _score(_Item it, _Query q, DateTime now) {
+  final title = it.title.toLowerCase();
+  final summary = it.summary.toLowerCase();
+  for (final ph in q.phrases) {
+    if (!title.contains(ph) && !summary.contains(ph)) return 0;
+  }
+  if (q.isEmpty) return _recencyBoost(it.epoch, now);
+
+  var rel = 0.0;
+  for (final t in q.terms) {
+    rel += _count(title, t) * 3.0 + _count(summary, t) * 1.0;
+  }
+  for (final ph in q.phrases) {
+    if (title.contains(ph)) {
+      rel += 6.0;
+    } else if (summary.contains(ph)) {
+      rel += 3.0;
+    }
+  }
+  if (rel == 0) return q.phrases.isNotEmpty ? 1.0 : 0.0;
+  return rel * (0.5 + _recencyBoost(it.epoch, now));
 }
 
 String _fmtWhen(int? epoch) {
@@ -148,30 +245,48 @@ String _fmtWhen(int? epoch) {
   return '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)} UTC';
 }
 
+String _relAge(int? epoch, DateTime now) {
+  if (epoch == null) return '';
+  final d =
+      now.difference(DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true));
+  if (d.isNegative) return '';
+  if (d.inMinutes < 60) return '${d.inMinutes}m ago';
+  if (d.inHours < 48) return '${d.inHours}h ago';
+  return '${d.inDays}d ago';
+}
+
 Future<String> searchNews(String query, {String? category}) async {
   final reg = FeedRegistry.instance;
   final feeds = reg.select(category, _maxFeeds);
-  final terms = query.toLowerCase().split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+  final q = _parseQuery(query);
+  final now = DateTime.now();
   final raw = await _gather(feeds, const Duration(seconds: 8));
 
-  final matched = raw.where((it) => it.title.isNotEmpty && _matches(it, terms)).toList();
-  final seen = <String>{};
-  final deduped = <_Item>[];
-  for (final it in matched) {
-    final key = it.title.toLowerCase();
-    if (seen.add(key)) deduped.add(it);
+  final scored = <(_Item, double)>[];
+  for (final it in raw) {
+    if (it.title.isEmpty) continue;
+    final s = _score(it, q, now);
+    if (s > 0) scored.add((it, s));
   }
-  deduped.sort((a, b) => (b.epoch ?? 0).compareTo(a.epoch ?? 0));
+  scored.sort((a, b) => b.$2.compareTo(a.$2));
 
-  if (deduped.isEmpty) {
+  final seen = <String>{};
+  final ranked = <_Item>[];
+  for (final (it, _) in scored) {
+    if (seen.add(it.title.toLowerCase())) ranked.add(it);
+  }
+
+  if (ranked.isEmpty) {
     return "No recent headlines matching '$query' across ${feeds.length} curated feeds.";
   }
   final lines = <String>[
-    "News results for '$query' (${deduped.length} match(es) across ${feeds.length} curated feeds, most recent first):\n",
+    "News results for '$query' (${ranked.length} match(es) across ${feeds.length} curated feeds, most relevant first):\n",
   ];
-  for (final it in deduped.take(_maxResults)) {
+  for (final it in ranked.take(_maxResults)) {
+    final age = _relAge(it.epoch, now);
+    final when = age.isEmpty ? _fmtWhen(it.epoch) : '${_fmtWhen(it.epoch)} ($age)';
     lines.add('[+] ${it.title}');
-    lines.add('    ${it.source} (${reg.sourceFlags(it.source)}) · ${_fmtWhen(it.epoch)}');
+    lines.add('    ${it.source} (${reg.sourceFlags(it.source)}) · $when');
     if (it.link.isNotEmpty) lines.add('    ${it.link}');
   }
   return lines.join('\n');
